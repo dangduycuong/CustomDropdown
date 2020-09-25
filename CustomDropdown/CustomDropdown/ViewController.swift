@@ -82,9 +82,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         dropdown.anchorView = flagTextField
         dropdown.direction = .bottom
         dropdown.bottomOffset = CGPoint(x: 0, y: flagTextField.bounds.size.height)
-        dropdown.customCellConfiguration = { (Index, String, cell) -> Void in
+        dropdown.customCellConfiguration = { (index, string, cell) -> Void in
             if let cell = cell as? CustomCell {
-                cell.flagImageView.image = DropDownFlag.all[Index].image
+                cell.flagImageView.image = DropDownFlag.all[index].image
             }
         }
         dropdown.selectionAction = { (index, item) in
