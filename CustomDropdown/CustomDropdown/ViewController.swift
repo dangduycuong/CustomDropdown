@@ -68,35 +68,76 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet weak var flagImageView: UIImageView!
     
+    var listDevice = [ListDeviceModel]()
+    var suggestDevice = [ListDeviceModel]()
     let dropdown = DropDown()
+    
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         flagTextField.delegate = self
+        getListDevice()
+    }
+    
+    func getListDevice() {
+        guard let path = Bundle.main.path(forResource: "ListIphone", ofType: "plist") else {return}
+        let settingsURL = URL(fileURLWithPath: path)
+        do {
+            let data = try Data(contentsOf: settingsURL)
+            let decoder = PropertyListDecoder()
+            listDevice = try decoder.decode([ListDeviceModel].self, from: data)
+        } catch {
+            // Handle error
+            print(error)
+        }
     }
 
+    func filterDevice() {
+        if flagTextField.text == "" {
+            suggestDevice = listDevice
+        } else {
+            suggestDevice = listDevice.filter { (data: ListDeviceModel) in
+                if let device = data.iPhone, let text = flagTextField.text {
+                    if device.lowercased().range(of: text.lowercased()) != nil {
+                        return true
+                    }
+                }
+                return false
+            }
+        }
+    }
 
     func selectFlag() {
-        dropdown.dataSource = DropDownFlag.all.map { $0.text }
+//        dropdown.dataSource = DropDownFlag.all.map { $0.text }
+        dropdown.dataSource = suggestDevice.map { $0.iPhone ?? "" }
         dropdown.cellNib = UINib(nibName: "CustomCell", bundle: nil)
         dropdown.anchorView = flagTextField
         dropdown.direction = .bottom
         dropdown.bottomOffset = CGPoint(x: 0, y: flagTextField.bounds.size.height)
         dropdown.customCellConfiguration = { (index, string, cell) -> Void in
             if let cell = cell as? CustomCell {
-                cell.flagImageView.image = DropDownFlag.all[index].image
+//                cell.flagImageView.image = DropDownFlag.all[index].image
             }
         }
         dropdown.selectionAction = { (index, item) in
             self.flagTextField.text = item
-            self.flagImageView.image = DropDownFlag.all[index].image
+//            self.flagImageView.image = DropDownFlag.all[index].image
         }
         dropdown.show()
     }
     
+    
+    
     func textFieldDidBeginEditing(_ textField: UITextField) {
+        filterDevice()
         selectFlag()
 //        textField.resignFirstResponder()
+    }
+    
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        filterDevice()
+        selectFlag()
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
